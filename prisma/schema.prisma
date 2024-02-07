@@ -14,7 +14,7 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt //여기까진 모델마다 공통적으로 가져감
   account   String   @unique
   password  String
   todos     Todo[]

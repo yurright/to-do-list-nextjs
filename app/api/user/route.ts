@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const client = new PrismaClient();
 
@@ -50,22 +51,36 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
+    //있는지 확인 후 저장 직전에 암호화 넣어야지!
+    //패스워드 암호화 (마지막에 구현)
+    const hashedPassword = bcrypt.hashSync(password, 10); // 이렇게 하면 암호화된다.
+    // bcrypt.compare 복구
+
+    //데이터베이스 저장 (유저 생성)
     const newUser = await client.user.create({
       data: {
         account, //(생략 문법)
-        password, //(생략 문법)
+        password: hashedPassword, //(생략 문법)
+      },
+      select: {
+        // 보여줄 애만 트루
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        account: true,
       },
     });
 
-    console.log(newUser);
+    // console.log(newUser);
 
+    //사용자에게 응답: 이 녀석은 생성 api이기 때문에 방금 생성된 애 응답해주면 좋을 것
+    return NextResponse.json(newUser); //응답 1, 주로 이거 사용. 얜 바로 넣어줌 얜 엑시오스로 가져올 때 response.data 에 바로 존재
+    /*
     return NextResponse.json({
-      message: "ok",
+      // 응답2: 데이터 한 번 더 감싸줌, 여러 데이터 응답해줘야 할 때 유용. // 앤 axios 로 가져올 때 response.data.user에 존재
+      user: newUser,
     });
-
-    //패스워드 암호화 (마지막에 구현)
-    //데이터베이스 저장 (유저 생성)
-    //사용자에게 응답
+    */
   } catch (error) {
     console.log(error); //콘솔은 개발자가 볼 수 있는 곳
 
